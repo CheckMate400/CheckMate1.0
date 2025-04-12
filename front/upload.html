@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>העלה מבחן</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    input[type="file"] {
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #00cc66;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>העלה מבחן לבדיקה</h1>
+  <input type="file" id="examFile" accept=".pdf, image/*">
+  <br>
+  <button onclick="uploadFile()">העלה קובץ</button>
+  <p id="result"></p>
+  <p id="summary"></p>
+
+
+  <script>
+  function uploadFile() {
+    const fileInput = document.getElementById('examFile');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("בחר קובץ קודם!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("http://localhost:8000/upload/", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+  document.getElementById("result").innerText =
+    "שם הקובץ: " + data.filename + "\nכותרת: " + data.title;
+
+  document.getElementById("summary").innerText =
+    "סיכום: " + data.summary;
+});
+  }
+</script>
+</body>
+</html>
