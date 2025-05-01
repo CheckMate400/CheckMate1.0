@@ -72,7 +72,7 @@
       .then(response => response.json())
       .then(data => {
           const container = document.getElementById("gradingResults");
-          const results = JSON.parse(data.results);
+          const results = data.results;
         
           let tableHTML = `
             <table border="1" style="width:100%; color:white; border-collapse: collapse;">
