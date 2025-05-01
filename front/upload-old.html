@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>העלה מבחן</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    input[type="file"] {
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #00cc66;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .results {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>העלה מבחן לבדיקה</h1>
+
+  <label>מבחן סטודנט (PDF):</label><br>
+  <input type="file" id="examFile" accept=".pdf"><br><br>
+
+  <label>קובץ פתרונות:</label><br>
+  <input type="file" id="solutionFile" accept=".pdf, .txt"><br><br>
+
+  <button onclick="uploadFiles()">בדוק מבחן</button><br><br>
+  <a href="index.html" class="button">חזרה לעמוד הבית</a>
+
+  <div class="results" id="gradingResults"></div>
+
+  <script>
+    // Helper function to detect Hebrew letters
+    function isHebrew(text) {
+      return /[\u0590-\u05FF]/.test(text);
+    }
+
+    function uploadFiles() {
+      const examFile = document.getElementById('examFile').files[0];
+      const solutionFile = document.getElementById('solutionFile').files[0];
+
+      if (!examFile || !solutionFile) {
+        alert("יש לבחור גם מבחן וגם פתרון!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("exam_file", examFile);
+      formData.append("solution_file", solutionFile);
+
+      fetch("http://localhost:8000/grade_exam/", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById("gradingResults");
+        const results = data.results;
+
+        const rtl = results.some(item =>
+          typeof item.student_answer === 'string' && isHebrew(item.student_answer)
+        );
+
+        let tableHTML = `
+          <div style="direction: ${rtl ? 'rtl' : 'ltr'};">
+          <table border="1" style="width:100%; color:white; border-collapse: collapse;">
+            <tr style="background-color: #333;">
+              <th>שאלה</th>
+              <th>תשובת סטודנט</th>
+              <th>ציון</th>
+              <th>הערה</th>
+            </tr>
+        `;
+
+        results.forEach((item, index) => {
+          if (item.score !== undefined) {
+            tableHTML += `
+              <tr>
+                <td>${item.question}</td>
+                <td>${item.student_answer}</td>
+                <td>${item.score}/10</td>
+                <td>${item.comment}</td>
+              </tr>
+            `;
+          }
+        });
+
+        tableHTML += `</table>`;
+
+        const summary = results.find(item => item.overall_score !== undefined);
+        if (summary) {
+          tableHTML += `
+            <h3 style="margin-top: 20px;">ציון כולל: ${summary.overall_score}</h3>
+            <p>${summary.summary_comment}</p>
+          `;
+        }
+
+        tableHTML += `</div>`;
+        container.innerHTML = tableHTML;
+      })
+      .catch(error => {
+        console.error("❌ Error grading exam:", error);
+        alert("אירעה שגיאה בעת בדיקת המבחן.");
+      });
+    }
+  </script>
+</body>
+</html>
