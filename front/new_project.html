@@ -1,1 +1,123 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>צור פרויקט בדיקה חדש</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    input, select {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 30px;
+      padding: 12px 24px;
+      background-color: #00cc66;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎓 צור פרויקט בדיקת מבחנים</h1>
+
+  <form id="projectForm">
+    <label>שם הפרויקט:</label>
+    <input type="text" name="project_name" required>
+
+    <label>נושא (למשל: פיזיקה, מתמטיקה):</label>
+    <input type="text" name="subject" required>
+
+    <label>מספר שאלות:</label>
+    <input type="number" name="num_questions" min="1" required>
+
+    <label>קובץ פתרונות (אופציונלי):</label>
+    <input type="file" name="solution_file" accept=".pdf,.txt">
+
+    <label>מספר מבחנים לבדיקה:</label>
+    <input type="number" name="num_tests" min="1" required>
+
+    <label>קבצי מבחנים (בחר כמה):</label>
+    <input type="file" name="test_files" accept=".pdf" multiple required>
+
+    <label>ממוצע צפוי (אופציונלי):</label>
+    <input type="number" name="expected_average" min="1" max="100">
+
+    <button type="submit">צור והעלה פרויקט</button>
+  </form>
+
+  <div id="response" style="margin-top: 30px;"></div>
+
+  <script>
+    const form = document.getElementById('projectForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+
+      const projectName = form.project_name.value.trim();
+      const subject = form.subject.value.trim();
+      const numQuestions = form.num_questions.value;
+      const numTests = form.num_tests.value;
+      const expectedAvg = form.expected_average.value;
+
+      formData.append("project_name", projectName);
+      formData.append("subject", subject);
+      formData.append("num_questions", numQuestions);
+      formData.append("num_tests", numTests);
+      if (expectedAvg) {
+        formData.append("expected_average", expectedAvg);
+      }
+
+      const solutionFile = form.solution_file.files[0];
+      if (solutionFile) {
+        formData.append("solution_file", solutionFile);
+      }
+
+      for (let file of form.test_files.files) {
+        formData.append("test_files", file);
+      }
+
+      const responseBox = document.getElementById("response");
+      responseBox.innerText = "⏳ מעלה ובודק את הפרויקט...";
+
+      try {
+        const res = await fetch("http://localhost:8000/create_project/", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+
+        responseBox.innerHTML = `
+          ✅ הפרויקט נוצר בהצלחה!<br>
+          <strong>שם הפרויקט:</strong> ${data.project_name}<br>
+          <strong>מספר מבחנים:</strong> ${data.num_tests}<br>
+          <strong>הציון הממוצע:</strong> ${data.average || "N/A"}
+        `;
+      } catch (err) {
+        console.error(err);
+        responseBox.innerText = "❌ שגיאה בהעלאת הפרויקט.";
+      }
+    });
+  </script>
+
+</body>
+</html>
 
