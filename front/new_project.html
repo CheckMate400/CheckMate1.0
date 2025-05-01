@@ -68,57 +68,55 @@
   <div id="response" style="margin-top: 30px;"></div>
 
   <script>
-    const form = document.getElementById('projectForm');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  const form = document.getElementById('projectForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const formData = new FormData();
+    const formData = new FormData();
 
-      const projectName = form.project_name.value.trim();
-      const subject = form.subject.value.trim();
-      const numQuestions = form.num_questions.value;
-      const numTests = form.num_tests.value;
-      const expectedAvg = form.expected_average.value;
+    const projectName = form.project_name.value.trim();
+    const subject = form.subject.value.trim();
+    const numQuestions = form.num_questions.value;
+    const numTests = form.num_tests.value;
+    const expectedAvg = form.expected_average.value;
 
-      formData.append("project_name", projectName);
-      formData.append("subject", subject);
-      formData.append("num_questions", numQuestions);
-      formData.append("num_tests", numTests);
-      if (expectedAvg) {
-        formData.append("expected_average", expectedAvg);
-      }
+    formData.append("project_name", projectName);
+    formData.append("subject", subject);
+    formData.append("num_questions", numQuestions);
+    formData.append("num_tests", numTests);
+    if (expectedAvg) {
+      formData.append("expected_average", expectedAvg);
+    }
 
-      const solutionFile = form.solution_file.files[0];
-      if (solutionFile) {
-        formData.append("solution_file", solutionFile);
-      }
+    const solutionFile = form.solution_file.files[0];
+    if (solutionFile) {
+      formData.append("solution_file", solutionFile);
+    }
 
-      for (let file of form.test_files.files) {
-        formData.append("test_files", file);
-      }
+    for (let file of form.test_files.files) {
+      formData.append("test_files", file);
+    }
 
-      const responseBox = document.getElementById("response");
-      responseBox.innerText = "⏳ מעלה ובודק את הפרויקט...";
+    const responseBox = document.getElementById("response");
+    responseBox.innerText = "⏳ מעלה ובודק את הפרויקט...";
 
-      try {
-        const res = await fetch("http://localhost:8000/create_project/", {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
+    try {
+      const res = await fetch("http://localhost:8000/create_project/", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
 
-        responseBox.innerHTML = `
-          ✅ הפרויקט נוצר בהצלחה!<br>
-          <strong>שם הפרויקט:</strong> ${data.project_name}<br>
-          <strong>מספר מבחנים:</strong> ${data.num_tests}<br>
-          <strong>הציון הממוצע:</strong> ${data.average || "N/A"}
-        `;
-      } catch (err) {
-        console.error(err);
-        responseBox.innerText = "❌ שגיאה בהעלאת הפרויקט.";
-      }
-    });
-  </script>
+      // ✅ Display full backend response for now
+      let html = `<h3>✅ הפרויקט נוצר בהצלחה!</h3>`;
+      html += `<pre style="text-align: left; direction: ltr; background: #222; padding: 20px; border-radius: 10px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>`;
+      responseBox.innerHTML = html;
+    } catch (err) {
+      console.error(err);
+      responseBox.innerText = "❌ שגיאה בהעלאת הפרויקט.";
+    }
+  });
+</script>
 
 </body>
 </html>
