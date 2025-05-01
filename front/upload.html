@@ -71,16 +71,34 @@
       })
       .then(response => response.json())
       .then(data => {
-        const container = document.getElementById("gradingResults");
-        container.innerHTML = "<h2>תוצאות בדיקה:</h2>";
-        data.results.forEach((item, index) => {
-          const parsed = JSON.parse(item.grading);
-          container.innerHTML += `
-            <p><strong>שאלה ${index + 1}:</strong><br>
-            ציון: ${parsed.score}/10<br>
-            הערה: ${parsed.comment}</p><hr>`;
-        });
-      })
+          const container = document.getElementById("gradingResults");
+          const results = JSON.parse(data.results);
+        
+          let tableHTML = `
+            <table border="1" style="width:100%; color:white; border-collapse: collapse;">
+              <tr style="background-color: #333;">
+                <th>שאלה</th>
+                <th>תשובת סטודנט</th>
+                <th>ציון</th>
+                <th>הערה</th>
+              </tr>
+          `;
+        
+          results.forEach((item, index) => {
+            tableHTML += `
+              <tr>
+                <td>${item.question}</td>
+                <td>${item.student_answer}</td>
+                <td>${item.score}/10</td>
+                <td>${item.comment}</td>
+              </tr>
+            `;
+          });
+        
+          tableHTML += "</table>";
+          container.innerHTML = tableHTML;
+        })
+
       .catch(error => {
         console.error("❌ Error grading exam:", error);
         alert("אירעה שגיאה בעת בדיקת המבחן.");
